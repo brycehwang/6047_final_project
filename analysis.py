@@ -3,43 +3,64 @@ try:
 	import queue
 except ImportError:
 	import Queue as queue
+#for graphs
 from igraph import *
+#for upgma
 from Bio import Phylo
 from TreeConstruction import DistanceTreeConstructor
+#for rf distance
 from ete2 import Tree
 
 def main():
+	#turns input file into an arry of sequences indexed by sequence name
 	#inputfile = sys.argv[1]
 	inputfile = "neuraminidase.txt"
 	seq_array = readinputasarray(inputfile)
+
 	seq_dict = {}
+	#turns sequence array into dictionary indexed by sequence name
 	for seq in seq_array:
 		seq_dict[seq[0]] = seq[1] 
 	#seq_array = seq_dict.items()
 	#print seq_dict["CY044149"]
 	#print seq_array[0]
 	#print checklengths(seq_dict)
+
+	#only works if the length of every sequence is the same because of distance matrix construction
 	if checklengths(seq_dict):
+		#create distance matrix from sequence data
 		distmatrix = createdistmatrix(seq_array)
+
+		#creates a graph representation of distance matrix for mst
 		distgraph = Adjacency(distmatrix)
+		#find mst
 		mst = spanning_tree(distgraph, return_tree = True)
+
+		#creates an ultraemtric matrix from mst
 		ultradistmatrix = ultrametrify(mst) #not done yet
+
+		#modfies ultrametric distance matrix for use in phylo package
 		phyloultradistmatrix = []
 		count = 1
 		for row in ultradistmatrix:
 			phyloultradistmatrix.append(row[0: count])
 			count += 1
+
+		#uses upgma to create a phylogenetic tree, writes in newick format (nested parathentheses)
 		constructor = DistanceTreeConstructor()
 		tree = constructor.upgma(phyloultradistmatrix)
-		Phylo.write(tree, 'tree.nh', 'newick')
-		#will modfiy later
-		t1 = Tree("tree.nh")
-		t2 = Tree("tree.nh")
+		Phylo.write(tree, "sequencetree.nh", "newick")
+
+		#just for testing purposes
+		#read trees, finds robinson foulds distance between the trees. will be used for training later
+		t1 = Tree("sequencetree.nh")
+		t2 = Tree("featuretree.nh")
 		rf, max_rf, common_leaves, parts_t1, parts_t2 = t1.robinson_foulds(t2)
 	else:
 		print "sequence not all the same length"
 
 
+#takes an array of sequences and finds the distances between each pair of sequences. 
 def createdistmatrix(seq_array):
 	distarray = []
 	for seq1_num in range(0, len(seq_array)):
@@ -54,7 +75,7 @@ def createdistmatrix(seq_array):
 	#print distarray[0]
 	return distarray
 
-#jukes cantor distance of two sequences
+#jukes cantor distance of two sequences. takes in two sequences as strings, returns as a float
 def jcdist(seq1, seq2):
 	substitutions = 0
 	for base in range(0, len(seq1)):
@@ -64,7 +85,7 @@ def jcdist(seq1, seq2):
 	dist = -0.75 * math.log(1 - 4.0 / 3 * P)
 	return dist
 
-#kimura 2 parameter distance of two sequences
+#kimura 2 parameter distance of two sequences. takes in two sequences as strings, returns as a float
 def kimuradist(seq1, seq2):
 	transitions = 0
 	transversions = 0
@@ -83,7 +104,7 @@ def kimuradist(seq1, seq2):
 		dist = -0.5 * math.log((1 - 2* P - Q) * math.sqrt(1 - 2 * Q))
 	return dist
 
-#tamura distances accounts for different nucleotide compositions too
+#tamura distances accounts for different nucleotide compositions too. takes in two sequences as strings, returns as a float
 def tamuradist(seq1, seq2):
 	transitions = 0
 	transversions = 0
@@ -118,6 +139,7 @@ def ultrametrify(mst):
 	pass 
 
 
+#ensures that all sequences are the same length. takes in a dictionary of sequences, returns true or false
 def checklengths(seq_dict):
 	allsamelength = True
 	length = len(seq_dict["GQ243758"])
@@ -128,6 +150,7 @@ def checklengths(seq_dict):
 	return allsamelength
 
 
+#reads input file, takes in file name, returns array of sequences in format [sequence_name, sequence] for each sequences
 def readinputasarray(file):
 	seq_array = []
 	seq_name = ""

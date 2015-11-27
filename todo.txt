@@ -1,0 +1,18 @@
+1) ultrametric distances from mst
+2) upgma to create newick represented tree
+3) robinson foulds (built into ete2 - must be in newiick format) + tree visualizaion(ete2 package)
+4) Identifying features/getting data for 
+	distance
+	proximity to airport
+	population density
+	health system status
+	value of economic trade
+	amount of people that move betweentwo places
+	cultrual proximity
+	trade
+	density of air/road links
+5) turn features into distance metric
+6) train features
+7) more distance metrics for sequences (things with cnv?)
+8) regression random forest for learning?
+9) analysis

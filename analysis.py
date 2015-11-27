@@ -1,9 +1,12 @@
 import math
 try:
-    import queue
+	import queue
 except ImportError:
-    import Queue as queue
+	import Queue as queue
 from igraph import *
+from Bio import Phylo
+from TreeConstruction import DistanceTreeConstructor
+from ete2 import Tree
 
 def main():
 	#inputfile = sys.argv[1]
@@ -20,8 +23,19 @@ def main():
 		distmatrix = createdistmatrix(seq_array)
 		distgraph = Adjacency(distmatrix)
 		mst = spanning_tree(distgraph, return_tree = True)
-
-		#ultra_distmatrix = ultrametrify(distmatrix)
+		ultradistmatrix = ultrametrify(mst) #not done yet
+		phyloultradistmatrix = []
+		count = 1
+		for row in ultradistmatrix:
+			phyloultradistmatrix.append(row[0: count])
+			count += 1
+		constructor = DistanceTreeConstructor()
+		tree = constructor.upgma(phyloultradistmatrix)
+		Phylo.write(tree, 'tree.nh', 'newick')
+		#will modfiy later
+		t1 = Tree("tree.nh")
+		t2 = Tree("tree.nh")
+		rf, max_rf, common_leaves, parts_t1, parts_t2 = t1.robinson_foulds(t2)
 	else:
 		print "sequence not all the same length"
 
@@ -36,7 +50,6 @@ def createdistmatrix(seq_array):
 			seq1 = seq_array[seq1_num][1]
 			seq2 = seq_array[seq2_num][1]
 			seq_dist[seq2_num] = tamuradist(seq1, seq2)
-			#seq_dist[seq2_num] = 5
 		distarray.append(seq_dist)
 	#print distarray[0]
 	return distarray
@@ -100,13 +113,9 @@ def tamuradist(seq1, seq2):
 
 
 
-
-def ultrametrify(distmatrix):
-	#for
+#takes in an minimum spanning tree and returns an ultrametric matrix
+def ultrametrify(mst):
 	pass 
-
-
-	
 
 
 def checklengths(seq_dict):

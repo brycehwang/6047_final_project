@@ -50,12 +50,6 @@ def main():
 		constructor = DistanceTreeConstructor()
 		tree = constructor.upgma(phyloultradistmatrix)
 		Phylo.write(tree, "sequencetree.nh", "newick")
-
-		#just for testing purposes
-		#read trees, finds robinson foulds distance between the trees. will be used for training later
-		t1 = Tree("sequencetree.nh")
-		t2 = Tree("featuretree.nh")
-		rf, max_rf, common_leaves, parts_t1, parts_t2 = t1.robinson_foulds(t2)
 	else:
 		print "sequence not all the same length"
 
